@@ -1,13 +1,17 @@
 import pandas as pd
 import numpy as np
 
-from secondlayer import secondlayer
+from .secondlayer import secondlayer
 
-with open('Database_2nd.txt',mode='r') as handle:
+from pathlib import Path
+
+DATA_PATH = str(Path(__file__).absolute().parent) + '/data'
+
+with open(DATA_PATH+'/Database_2nd.txt',mode='r') as handle:
     db2 = pd.read_csv(handle,sep='\t',header=None, names=['0', '1', '2','charge'])
-with open('Database_1st.txt',mode='r') as handle:
+with open(DATA_PATH+'/Database_1st.txt',mode='r') as handle:
     db1 = pd.read_csv(handle,sep='\t',header=None, names=['0', '1','charge'])
-with open('Database_0th.txt',mode='r') as handle:
+with open(DATA_PATH+'/Database_0th.txt',mode='r') as handle:
     db0 = pd.read_csv(handle,sep='\t',header=None, names=['0','charge'])
 
 def mCBAC(f):

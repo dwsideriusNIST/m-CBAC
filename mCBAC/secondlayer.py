@@ -3,9 +3,13 @@ import pandas as pd
 import numpy as np
 import json
 
-from atom_radius import atom_radius
+from pathlib import Path
 
-with open('./atomic_radii.json',mode='r') as handle:
+DATA_PATH = str(Path(__file__).absolute().parent) + '/data'
+
+from .atom_radius import atom_radius
+
+with open(DATA_PATH+'/atomic_radii.json',mode='r') as handle:
     atomic_radii_lib = json.load(handle)
 
 def secondlayer(filename):

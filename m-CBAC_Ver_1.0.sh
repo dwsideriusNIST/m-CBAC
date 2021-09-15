@@ -62,7 +62,7 @@ FILES=`ls *.cif`
 
  cp secondlayer.f90 temp.f90
 
- sed -i 's/FILES/'${f}'/g' temp.f90
+ sed -i'.bak' 's/FILES/'${f}'/g' temp.f90
  ####Build the connectivity file##########
  gfortran temp.f90 -o temp
  ./temp
@@ -73,18 +73,18 @@ file1=${f}.dat.0nd.txt
 file2=${f}.dat.1st.txt
 file3=${f}.dat.2nd.txt
 file4=${f}.dat.total.txt
-sed -i "s/null //g" ./$file3
+sed -i'.bak' "s/null //g" ./$file3
 
 for InputName in $file2 $file3
 do
 cp sort_colum.py sort_temp.py
-sed -i "s/InputName/$InputName/g" sort_temp.py
+sed -i'.bak' "s/InputName/$InputName/g" sort_temp.py
 #python sort_temp.py
 python3 sort_temp.py
 done
-sed -i 's/ //g' $file1
-sed -i 's/ //g' $file2
-sed -i 's/ //g' $file3
+sed -i'.bak' 's/ //g' $file1
+sed -i'.bak' 's/ //g' $file2
+sed -i'.bak' 's/ //g' $file3
 
 paste $file1 $file2 $file3  > $file4
 
@@ -102,8 +102,10 @@ awk -F' ' 'NR == FNR { h[$1,$2]=$3; next }; h[$1,$2] {print h[$1,$2];next} {prin
 awk -F' ' 'NR == FNR { h[$1]=$2; next }; h[$1] {print h[$1];next} {print $1} ' $data3 First_Charge_${f}.txt > Zero_Charge_${f}.txt       
 #######record the ratio of 2nd CBAC assignment ratio######
 Num_atom=`awk 'END {print NR}' Sec_Charge_${f}.txt`
-Num_assign=`awk '$1==$1+0 {print}' Sec_Charge_${f}.txt | wc -l` 
-Mat_Ratio=`awk 'BEGIN {print '$Num_assign'/'$Num_atom'}'`
+Num_assign=`awk '$1==$1+0 {print}' Sec_Charge_${f}.txt | wc -l`
+echo 'temp = float('$Num_assign')/float('$Num_atom'); print(temp)' > runme
+Mat_Ratio=`python3 < runme`
+rm -f runme
 echo $Mat_Ratio $Num_Mat > ${f}_ratio.txt
 
 #####get the head txt of cif file######
@@ -117,12 +119,14 @@ awk 'NR >= '$crow' {print $'$nlabel'" "$'$nsymbol'" "$'$nfrax'" "$'$nfray'" "$'$
 Sum_Charge=$(awk -F, '$1+0 == $1 {sum += $1} END {print sum}' Zero_Charge_${f}.txt)
 Num_unknown=$(awk -F, '$1+0 != $1 {print}' Zero_Charge_${f}.txt | wc -l)
 if [ $Num_unknown -gt 0 ]; then
-Unknown_Charge=$(awk 'BEGIN {print (0 - '$Sum_Charge')/'$Num_unknown'}')
-echo $f >> unkonwn_element.list
-awk -F, '$1+0 != $1{print '$Unknown_Charge';next}1' Zero_Charge_${f}.txt > Final_Charge_${f}.txt  
+    echo 'print(0. - float('$Sum_Charge')/float('$Num_unknown'))' > runme
+    Unknown_Charge=`python3 < runme`
+    rm -f runme
+echo $f >> unknown_element.list
+awk -F, '$1+0 != $1{print '$Unknown_Charge';next}1' Zero_Charge_${f}.txt > Final_Charge_${f}.txt
 else
 mv Zero_Charge_${f}.txt Final_Charge_${f}.txt 
-fi 
+fi
 ##########neturalize the total charge by weighted##############
 Abs_sum=`awk 'function abs(v) {return v < 0 ? -v : v} {SUM += abs($1)} END {print SUM}' Final_Charge_${f}.txt`
 Real_sum=`awk '{SUM += $1} END {print SUM}' Final_Charge_${f}.txt`
@@ -142,7 +146,7 @@ echo " _atom_site_charge" >> head_${f}.txt
 cat head_${f}.txt new_tail.txt > FINAL_${f}
 ##########optional check if there is floating ions or solvent#########
 file5=${f}.checkfloat.txt
-awk -vf="$f" 'NR==1 && $1 {print f}' $file5 >> float.list
+awk -v f="$f" 'NR==1 && $1 {print f}' $file5 >> float.list
 #########clean the temp files, uncomment if need charge assignment details###########
 rm head_${f}.txt
 rm ${f}.dat ${f}.dat.* 
@@ -150,8 +154,10 @@ rm *_Charge_*${f}*
 rm tail_1.txt
 rm ${f}.checkfloat.txt
 rm new_tail.txt
-rm FINAL_${f}*.cif_ratio
+rm ${f}*_ratio.txt
 rm sort_temp.py
+rm temp.f90.bak
+rm sort_temp.py.bak
 done
 
 

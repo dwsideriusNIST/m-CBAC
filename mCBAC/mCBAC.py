@@ -61,7 +61,7 @@ def mCBAC(f):
     # Identify sum of charges and number of unknown charges
     Sum_charges = sum([x for x in zero_charges if isinstance(x,float)])
     Num_unknown = sum([1 for x in zero_charges if not isinstance(x,float)])
-    print(Sum_charges)
+    print(Sum_charges, 'sum of charges')
     print(Num_unknown, 'unknown charges')
 
     if Num_unknown > 0:

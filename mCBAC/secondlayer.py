@@ -135,7 +135,7 @@ def secondlayer(filename):
                             
 #        print(rank,num)
         if index0%100 == 0:
-            print('finished ', index0, 'of', Natoms_exp)
+            print('finished ', index0, 'of', Natoms)
         rank_list.append(rank)
         num_list.append(num)
     
